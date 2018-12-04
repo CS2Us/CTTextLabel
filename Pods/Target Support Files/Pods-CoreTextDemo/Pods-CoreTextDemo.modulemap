@@ -1,0 +1,6 @@
+framework module Pods_CoreTextDemo {
+  umbrella header "Pods-CoreTextDemo-umbrella.h"
+
+  export *
+  module * { export * }
+}
