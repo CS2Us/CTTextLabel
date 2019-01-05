@@ -33,7 +33,7 @@ class ViewController: UIViewController {
 		textLabel.vertical = true
 		textLabel.numberOfLines = 3
 		textLabel.backgroundColor = UIColor.white
-		textLabel.contentInset = UIEdgeInsets(top: 50, left: 10, bottom: 50, right: 10)
+//		textLabel.contentInset = UIEdgeInsets(top: 50, left: 10, bottom: 50, right: 10)
 
 		view.addSubview(textLabel)
 		textLabel.snp.makeConstraints { maker in
