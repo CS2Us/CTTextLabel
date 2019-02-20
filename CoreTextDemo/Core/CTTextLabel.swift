@@ -324,9 +324,9 @@ public class CTTextLabel: UIView {
 				ctx.textPosition = CGPoint(x: posX, y: posY)
 				//				let runTextMatrix = CTRunGetTextMatrix(ctRun)
 				//				let runTextMatrixIsID = runTextMatrix.isIdentity
-				let runAttrs = CTRunGetAttributes(ctRun)
+				let runAttrs = CTRunGetAttributes(ctRun) as! [NSAttributedString.Key: Any]
 				
-				let runFont = unsafeBitCast(CFDictionaryGetValue(runAttrs, unsafeBitCast(kCTFontAttributeName, to: UnsafeRawPointer.self)), to: CTFont.self)
+				let runFont = runAttrs[.font] as! CTFont
 				let glyphCount = CTRunGetGlyphCount(ctRun)
 				if glyphCount <= 0 { continue }
 				
@@ -334,27 +334,10 @@ public class CTTextLabel: UIView {
 				var glyphPositions = [CGPoint](repeating: CGPoint.zero, count: glyphCount)
 				CTRunGetGlyphs(ctRun, CFRangeMake(0, 0), &glyphs)
 				CTRunGetPositions(ctRun, CFRangeMake(0, 0), &glyphPositions)
-				let fillColor = unsafeBitCast(CFDictionaryGetValue(runAttrs, unsafeBitCast(kCTForegroundColorAttributeName, to: UnsafeRawPointer.self)), to: CGColor.self)
-				let strokeWidth = 0.00
-				var strokeColor = unsafeBitCast(CFDictionaryGetValue(runAttrs, unsafeBitCast(kCTStrokeColorAttributeName, to: UnsafeRawPointer.self)), to: CGColor.self)
 				
-				
+				let foregroundColor = (runAttrs[.foregroundColor] as! UIColor).cgColor
 				ctx.saveGState()
-				ctx.setFillColor(fillColor)
-				if strokeWidth == 0  {
-					ctx.setTextDrawingMode(.fill)
-				} else {
-					if strokeColor.numberOfComponents == 0 {
-						strokeColor = fillColor
-					}
-					ctx.setStrokeColor(strokeColor)
-					//					ctx.setLineWidth(CTFontGetSize(runFont) * CGFloat(fabsf(strokeWidth * 0.01)))
-					if strokeWidth > 0 {
-						ctx.setTextDrawingMode(.stroke)
-					} else {
-						ctx.setTextDrawingMode(.fillStroke)
-					}
-				}
+				ctx.setFillColor(foregroundColor)
 				
 				if vertical {
 					var runStrIndex = [CFIndex](repeating: 0, count: glyphCount + 1)

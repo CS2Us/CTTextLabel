@@ -19,7 +19,8 @@ class ViewController: UIViewController {
 		let textLabel: CTTextLabel = CTTextLabel()
 		textLabel.textCb = {
 			let quote = "『这是希望之春，这是失望之冬』"
-			let baseStyle = StringStyle(.font(UIFont(name: "beifang", size: 20) ?? UIFont(name: "MMXHN", size: 20) ?? UIFont.systemFont(ofSize: 20)),
+			let baseStyle = StringStyle(.font(UIFont.systemFont(ofSize: 20)),
+										.color(BONColor.red),
 									.lineSpacing(5),
 									.lineBreakMode(.byCharWrapping),
 									.alignment(.natural))
