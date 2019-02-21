@@ -9,7 +9,6 @@
 import Foundation
 import UIKit
 import CoreText
-import SnapKit
 
 public enum CTTextVerticalAlignment: UInt8 {
 	case top
@@ -17,15 +16,39 @@ public enum CTTextVerticalAlignment: UInt8 {
 	case bottom
 }
 
-private enum CTTextRunGlyphDrawMode: UInt8 {
-	case horizontal
-	case verticalRotate
-	case verticalRotateMove
+private enum CTTextRunGlyphDrawMode: RawRepresentable {
+	typealias RawValue = Int8
+	
+	case horizontalButMove(xCenter: Bool, yCenter: Bool)
+	case verticalRotateAndMove(xCenter: Bool, yCenter: Bool)
+	
+	init?(rawValue: RawValue) {
+		return nil
+	}
+	
+	var rawValue: RawValue {
+		switch self {
+		case .horizontalButMove(let xCenter, let yCenter):
+			switch (xCenter, yCenter) {
+			case (true, true): return -1
+			case (true, false): return -2
+			case (false, true): return -3
+			case (false, false): return -4
+			}
+		case .verticalRotateAndMove(let xCenter, let yCenter):
+			switch (xCenter, yCenter) {
+			case (true, true): return 1
+			case (true, false): return 2
+			case (false, true): return 3
+			case (false, false): return 4
+			}
+		}
+	}
 }
 
 private struct CTRunGlyphInfo {
 	public fileprivate(set) var glyphRangeRun: NSRange = NSMakeRange(0, 0)
-	public fileprivate(set) var drawMode: CTTextRunGlyphDrawMode = CTTextRunGlyphDrawMode.horizontal
+	public fileprivate(set) var drawMode: CTTextRunGlyphDrawMode = CTTextRunGlyphDrawMode.horizontalButMove(xCenter: false, yCenter: false)
 }
 
 private struct CTLineInfo {
@@ -84,61 +107,43 @@ private func AboutCTPath(_ rect: CGRect, path: CGPath?, exclusionPaths: [UIBezie
 	return CGPath(rect: calculateRect, transform: &transform)
 }
 
-private func AboutCTVerticalFormRotateAndMoveCharacterSet() -> NSCharacterSet {
+private func AboutCTVerticalFormMoveXCenterCharacterSet() -> NSCharacterSet {
 	let c_set = NSMutableCharacterSet()
-	c_set.addCharacters(in: "，；。、．")
+	c_set.addCharacters(in: NSMakeRange(0xFF0C, 1)) // ，
+	c_set.addCharacters(in: NSMakeRange(0x3001, 1)) // 、
+	c_set.addCharacters(in: NSMakeRange(0x3002, 1)) // 。
+	c_set.addCharacters(in: NSMakeRange(0xFF1F, 1)) // ？
+	c_set.addCharacters(in: NSMakeRange(0xFF01, 1)) // ！
+	c_set.addCharacters(in: NSMakeRange(0xFF1A, 1)) // ：
+	c_set.addCharacters(in: NSMakeRange(0x2026, 1)) // …
 	return c_set
 }
 
-private func AboutCTVerticalNotRotateAndMoveCharacterSet() -> NSCharacterSet {
+private func AboutCTVerticalFormMoveYCenterCharacterSet() -> NSCharacterSet {
 	let c_set = NSMutableCharacterSet()
-	c_set.addCharacters(in: NSMakeRange(0x300E, 1)) // 『
-	c_set.addCharacters(in: NSMakeRange(0x300F, 1)) //  』
-	c_set.addCharacters(in: NSMakeRange(0x301D, 1)) // 〝
-	c_set.addCharacters(in: NSMakeRange(0x301E, 1)) //  〞
-	c_set.addCharacters(in: NSMakeRange(0x3003, 1)) //  〃
-	c_set.addCharacters(in: NSMakeRange(0x300A, 1)) // 《
-	c_set.addCharacters(in: NSMakeRange(0x300B, 1)) //  》
-	c_set.addCharacters(in: NSMakeRange(0x300C, 1)) // 「
-	c_set.addCharacters(in: NSMakeRange(0x300D, 1)) //  」
-	
+	c_set.addCharacters(in: NSMakeRange(0xFF0C, 1)) // ，
+	c_set.addCharacters(in: NSMakeRange(0x3001, 1)) // 、
+	c_set.addCharacters(in: NSMakeRange(0x3002, 1)) // 。
 	return c_set
 }
 
 private func AboutCTVerticalFormRotateCharacterSet() -> NSCharacterSet {
 	let c_set = NSMutableCharacterSet()
-	c_set.addCharacters(in: NSMakeRange(0x1100, 256)) // Hangul Jamo
-	c_set.addCharacters(in: NSMakeRange(0x2460, 160)) // Enclosed Alphanumerics
-	c_set.addCharacters(in: NSMakeRange(0x2600, 256)) // Miscellaneous Symbols
-	c_set.addCharacters(in: NSMakeRange(0x2700, 192)) // Dingbats
 	c_set.addCharacters(in: NSMakeRange(0x2E80, 128)) // CJK Radicals Supplement
-	c_set.addCharacters(in: NSMakeRange(0x2F00, 224)) // Kangxi Radicals
-	c_set.addCharacters(in: NSMakeRange(0x2FF0, 16)) // Ideographic Description Characters
-	c_set.addCharacters(in: NSMakeRange(0x3000, 64)) // CJK Symbols and Punctuation
-	c_set.addCharacters(in: NSMakeRange(0x3008, 10))
-	c_set.addCharacters(in: NSMakeRange(0x3014, 12))
-	c_set.addCharacters(in: NSMakeRange(0x3040, 96)) // Hiragana
-	c_set.addCharacters(in: NSMakeRange(0x30A0, 96)) // Katakana
-	c_set.addCharacters(in: NSMakeRange(0x3100, 48)) // Bopomofo
-	c_set.addCharacters(in: NSMakeRange(0x3130, 96)) // Hangul Compatibility Jamo
-	c_set.addCharacters(in: NSMakeRange(0x3190, 16)) // Kanbun
-	c_set.addCharacters(in: NSMakeRange(0x31A0, 32)) // Bopomofo Extended
-	c_set.addCharacters(in: NSMakeRange(0x31C0, 48)) // CJK Strokes
-	c_set.addCharacters(in: NSMakeRange(0x31F0, 16)) // Katakana Phonetic Extensions
-	c_set.addCharacters(in: NSMakeRange(0x3200, 256)) // Enclosed CJK Letters and Months
 	c_set.addCharacters(in: NSMakeRange(0x3300, 256)) // CJK Compatibility
-	c_set.addCharacters(in: NSMakeRange(0x3400, 2582)) // CJK Unified Ideographs Extension A
 	c_set.addCharacters(in: NSMakeRange(0x4E00, 20941)) // CJK Unified Ideographs
-	c_set.addCharacters(in: NSMakeRange(0xAC00, 11172)) // Hangul Syllables
-	c_set.addCharacters(in: NSMakeRange(0xD7B0, 80)) // Hangul Jamo Extended-B
-	c_set.addCharacters(in: "") // U+F8FF (Private Use Area)
 	c_set.addCharacters(in: NSMakeRange(0xF900, 512)) // CJK Compatibility Ideographs
-	c_set.addCharacters(in: NSMakeRange(0xFE10, 16)) // Vertical Forms
-	c_set.addCharacters(in: NSMakeRange(0xFF00, 240)) // Halfwidth and Fullwidth Forms
-	c_set.addCharacters(in: NSMakeRange(0x1F200, 256)) // Enclosed Ideographic Supplement
-	c_set.addCharacters(in: NSMakeRange(0x1F300, 768)) // Enclosed Ideographic Supplement
-	c_set.addCharacters(in: NSMakeRange(0x1F600, 80)) // Emoticons (Emoji)
-	c_set.addCharacters(in: NSMakeRange(0x1F680, 128)) // Transport and Map Symbols
+	c_set.addCharacters(in: NSMakeRange(0xFF0C, 1)) // ，
+	c_set.addCharacters(in: NSMakeRange(0x3001, 1)) // 、
+	c_set.addCharacters(in: NSMakeRange(0x3002, 1)) // 。
+	c_set.addCharacters(in: NSMakeRange(0xFF1F, 1)) // ？
+	c_set.addCharacters(in: NSMakeRange(0xFF01, 1)) // ！
+	c_set.addCharacters(in: NSMakeRange(0xFF1A, 1)) // ：
+	c_set.addCharacters(in: NSMakeRange(0xFF5C, 1)) // |
+	c_set.addCharacters(in: NSMakeRange(0xFE41, 1)) // ﹁
+	c_set.addCharacters(in: NSMakeRange(0xFE42, 1)) //  ﹂
+	c_set.addCharacters(in: NSMakeRange(0xFE43, 1)) // ﹃
+	c_set.addCharacters(in: NSMakeRange(0xFE44, 1)) //  ﹄
 	return c_set
 }
 
@@ -147,7 +152,7 @@ public class CTTextLabel: UIView {
 	
 	public typealias CTTextCallback = () -> NSAttributedString
 	
-	public var vertical: Bool = false
+	public var vertical: Bool = true
 	public var numberOfLines: Int = 0;
 	public var contentInset: UIEdgeInsets = UIEdgeInsets.zero
 	public var pathFillEvenOdd: Bool = true
@@ -157,14 +162,17 @@ public class CTTextLabel: UIView {
 	public var verticalAlignment: CTTextVerticalAlignment = .center
 	public var text: NSAttributedString! { didSet { self.setNeedsRedraw() }}
 	public var textCb: CTTextCallback! { didSet { self.text = self.textCb() }}
+	public var needsRedraw: Bool = false
 	
 	@inline(__always)
 	private func setNeedsRedraw() {
+		self.needsRedraw = true
 		self.setNeedsDisplay()
 		self.invalidateIntrinsicContentSize()
 	}
 	
 	public override func draw(_ rect: CGRect) {
+		guard needsRedraw == true else { return }
 		var ctxSize = bounds.size
 		if vertical {
 			ctxSize.width = defaultMaxContentSize.width
@@ -215,8 +223,8 @@ public class CTTextLabel: UIView {
 		
 		if vertical {
 			let rotateCharset = AboutCTVerticalFormRotateCharacterSet()
-			let rotateMoveCharset = AboutCTVerticalFormRotateAndMoveCharacterSet()
-			let notRotateCharset = AboutCTVerticalNotRotateAndMoveCharacterSet()
+			let moveXCenterCharset = AboutCTVerticalFormMoveXCenterCharacterSet()
+			let moveYCenterCharset = AboutCTVerticalFormMoveYCenterCharacterSet()
 			
 			for lineIndex in 0..<lineCount {
 				let ctLine = unsafeBitCast(CFArrayGetValueAtIndex(ctLines, lineIndex) , to: CTLine.self)
@@ -239,28 +247,30 @@ public class CTTextLabel: UIView {
 					let isColorGlyph = (CTFontGetSymbolicTraits(ctFont).rawValue & CTFontSymbolicTraits.traitColorGlyphs.rawValue) != 0
 					
 					var prevIndex = 0
-					var prevMode = CTTextRunGlyphDrawMode.horizontal
+					var prevMode = CTTextRunGlyphDrawMode.horizontalButMove(xCenter: false, yCenter: false)
 					for glyphIndex in 0..<glyphCount {
 						var glyphRotate = false
-						var glyphRotateMove = false
+						var glyphMove = false
+						var glyphMoveXCenter = false
+						var glyphMoveYCenter = false
 						let runStrLen = runStrIndices[glyphIndex + 1] - runStrIndices[glyphIndex]
 						if isColorGlyph {
 							glyphRotate = true
 						} else if runStrLen == 1 {
 							let character = (text.string as NSString).character(at: runStrIndices[glyphIndex])
-							glyphRotate = notRotateCharset.characterIsMember(character) ? false : rotateCharset.characterIsMember(character)
-							if glyphRotate {
-								glyphRotateMove = rotateMoveCharset.characterIsMember(character)
-							}
+							glyphMoveXCenter = moveXCenterCharset.characterIsMember(character)
+							glyphMoveYCenter = moveYCenterCharset.characterIsMember(character)
+							glyphMove = glyphMoveXCenter || glyphMoveYCenter
+							glyphRotate = rotateCharset.characterIsMember(character)
 						} else if runStrLen > 1 {
 							let glyphStr = (text.string as NSString).substring(with: NSMakeRange(runStrIndices[glyphIndex], runStrLen))
-							glyphRotate = glyphStr.rangeOfCharacter(from: notRotateCharset as CharacterSet) != nil ? false : glyphStr.rangeOfCharacter(from: rotateCharset as CharacterSet) != nil
-							if glyphRotate {
-								glyphRotateMove = glyphStr.rangeOfCharacter(from: rotateMoveCharset as CharacterSet) != nil
-							}
+							glyphMoveXCenter = (glyphStr.rangeOfCharacter(from: moveXCenterCharset as CharacterSet) != nil)
+							glyphMoveYCenter = (glyphStr.rangeOfCharacter(from: moveYCenterCharset as CharacterSet) != nil)
+							glyphMove = glyphMoveXCenter || glyphMoveYCenter
+							glyphRotate = glyphStr.rangeOfCharacter(from: rotateCharset as CharacterSet) != nil
 						}
 						
-						let mode = glyphRotateMove ? CTTextRunGlyphDrawMode.verticalRotateMove : (glyphRotate ? CTTextRunGlyphDrawMode.verticalRotate : CTTextRunGlyphDrawMode.horizontal)
+						let mode = (glyphMove && glyphRotate) ? CTTextRunGlyphDrawMode.verticalRotateAndMove(xCenter: glyphMoveXCenter, yCenter: glyphMoveYCenter) : (glyphRotate ? CTTextRunGlyphDrawMode.verticalRotateAndMove(xCenter: false, yCenter: false) : (glyphMove ? CTTextRunGlyphDrawMode.horizontalButMove(xCenter: glyphMoveXCenter, yCenter: glyphMoveYCenter) : CTTextRunGlyphDrawMode.horizontalButMove(xCenter: false, yCenter: false)))
 						if glyphIndex == 0 {
 							prevMode = mode
 						} else if (mode != prevMode) {
@@ -322,11 +332,10 @@ public class CTTextLabel: UIView {
 				let ctRun = unsafeBitCast(CFArrayGetValueAtIndex(ctRuns, runIndex) , to: CTRun.self)
 				ctx.textMatrix = CGAffineTransform.identity
 				ctx.textPosition = CGPoint(x: posX, y: posY)
-				//				let runTextMatrix = CTRunGetTextMatrix(ctRun)
-				//				let runTextMatrixIsID = runTextMatrix.isIdentity
-				let runAttrs = CTRunGetAttributes(ctRun) as! [NSAttributedString.Key: Any]
 				
-				let runFont = runAttrs[.font] as! CTFont
+				let runAttrs = CTRunGetAttributes(ctRun)
+				
+				let runFont = unsafeBitCast(CFDictionaryGetValue(runAttrs, unsafeBitCast(kCTFontAttributeName, to: UnsafeRawPointer.self)), to: CTFont.self)
 				let glyphCount = CTRunGetGlyphCount(ctRun)
 				if glyphCount <= 0 { continue }
 				
@@ -334,10 +343,12 @@ public class CTTextLabel: UIView {
 				var glyphPositions = [CGPoint](repeating: CGPoint.zero, count: glyphCount)
 				CTRunGetGlyphs(ctRun, CFRangeMake(0, 0), &glyphs)
 				CTRunGetPositions(ctRun, CFRangeMake(0, 0), &glyphPositions)
+				let attrs = runAttrs as! [NSAttributedString.Key:Any]
+				let fillColor = (attrs[.foregroundColor] as! UIColor).cgColor
 				
-				let foregroundColor = (runAttrs[.foregroundColor] as! UIColor).cgColor
 				ctx.saveGState()
-				ctx.setFillColor(foregroundColor)
+				ctx.setFillColor(fillColor)
+				ctx.setTextDrawingMode(.fill)
 				
 				if vertical {
 					var runStrIndex = [CFIndex](repeating: 0, count: glyphCount + 1)
@@ -362,16 +373,21 @@ public class CTTextLabel: UIView {
 							ctx.saveGState()
 							ctx.textMatrix = CGAffineTransform.identity
 							
-							if mode.rawValue != 0 {
+							var glyphPosition = CGPoint.zero
+							if mode.rawValue > 0 {
 								let ofs = (ascent - descent) * 0.5
 								let w = glyphAdvances[glyphIndex].width * 0.5
 								var x = actualLinePosition[lineIndex].x + verticalOffset + glyphPositions[glyphIndex].y + (ofs - w)
 								var y = -actualLinePosition[lineIndex].y + bounds.size.height - glyphPositions[glyphIndex].x - (ofs + w)
-								if mode == .verticalRotateMove {
-									x += ofs
-									y += w - ofs
+								if case .verticalRotateAndMove(let xCenter, let yCenter) = mode {
+									if xCenter == true {
+										x += descent - 3
+									}
+									if yCenter == true {
+										y += descent
+									}
 								}
-								ctx.textPosition = CGPoint(x: x, y: y)
+								glyphPosition = CGPoint(x: x, y: y)
 							} else {
 								let ctRunAttrs = CTRunGetAttributes(ctRun)
 								let p_kern_key = Unmanaged.passUnretained(kCTKernAttributeName).toOpaque()
@@ -380,9 +396,37 @@ public class CTTextLabel: UIView {
 								var kern: CGFloat = 0
 								CFNumberGetValue(p_kern, .cgFloatType, &kern)
 								ctx.rotate(by: CGFloat(-90 * Double.pi / 180))
-								ctx.textPosition = CGPoint(x: actualLinePosition[lineIndex].y - bounds.size.height + glyphPositions[glyphIndex].x + kern * 0.5, y: actualLinePosition[lineIndex].x + verticalOffset + glyphPositions[glyphIndex].y - kern * 0.5)
+								var x = actualLinePosition[lineIndex].y - bounds.size.height + glyphPositions[glyphIndex].x + kern * 0.5
+								var y = actualLinePosition[lineIndex].x + verticalOffset + glyphPositions[glyphIndex].y - kern * 0.5
+								if case .horizontalButMove(let xCenter, let yCenter) = mode {
+									if xCenter == true {
+										y += descent - 1
+									}
+									if yCenter == true {
+										x += descent
+									}
+								}
+								glyphPosition = CGPoint(x: x, y: y)
 							}
 							
+							switch contentMode {
+							case .bottom:
+								if case .horizontalButMove = mode {
+									glyphPosition.x += (bounds.size.height - actualBoundingSize.height)
+								} else {
+									glyphPosition.y -= (bounds.size.height - actualBoundingSize.height)
+								}
+							case .center:
+								if case .horizontalButMove = mode {
+									glyphPosition.x += (bounds.size.height - actualBoundingSize.height) * 0.5
+								} else {
+									glyphPosition.y -= (bounds.size.height - actualBoundingSize.height) * 0.5
+								}
+							case .top:
+								glyphPosition.y -= 0
+							default: break
+							}
+							ctx.textPosition = glyphPosition
 							
 							let isColorGlyph = (CTFontGetSymbolicTraits(runFont).rawValue & CTFontSymbolicTraits.traitColorGlyphs.rawValue) != 0
 							let copy_glyphs = [CGGlyph](repeating: glyphs[glyphIndex], count: 1)

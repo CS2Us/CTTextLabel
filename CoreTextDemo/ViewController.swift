@@ -18,8 +18,8 @@ class ViewController: UIViewController {
 		
 		let textLabel: CTTextLabel = CTTextLabel()
 		textLabel.textCb = {
-			let quote = "『这是希望之春，这是失望之冬』"
-			let baseStyle = StringStyle(.font(UIFont.systemFont(ofSize: 20)),
+			let quote = "中｜中，中。中、中？中！中：中……"
+			let baseStyle = StringStyle(.font(UIFont(name: "PingFangHK-Light", size: 20)!),
 										.color(BONColor.red),
 									.lineSpacing(5),
 									.lineBreakMode(.byCharWrapping),
@@ -28,13 +28,13 @@ class ViewController: UIViewController {
 			
 			let str = quote.styled(with: quoteStyle)
 			let mStr = NSMutableAttributedString.init(attributedString: str)
-			mStr.addAttribute(.kern, value: 15, range: NSMakeRange(0, str.length))
+			mStr.addAttribute(.kern, value: 0, range: NSMakeRange(0, str.length))
 			return mStr
 		}
 		textLabel.vertical = true
-		textLabel.numberOfLines = 3
+		textLabel.numberOfLines = 5
 		textLabel.backgroundColor = UIColor.white
-//		textLabel.contentInset = UIEdgeInsets(top: 50, left: 10, bottom: 50, right: 10)
+		textLabel.contentInset = UIEdgeInsets(top: 50, left: 10, bottom: 50, right: 10)
 
 		view.addSubview(textLabel)
 		textLabel.snp.makeConstraints { maker in
