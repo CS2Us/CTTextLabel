@@ -19,7 +19,7 @@ class ViewController: UIViewController {
 		let textLabel: CTTextLabel = CTTextLabel()
 		textLabel.textCb = {
 			let quote = "中｜中，中。中、中？中！中：中……"
-			let baseStyle = StringStyle(.font(UIFont(name: "PingFangHK-Light", size: 20)!),
+			let baseStyle = StringStyle(.font(UIFont(name: "PingFangSC-Light", size: 20)!),
 										.color(BONColor.red),
 									.lineSpacing(5),
 									.lineBreakMode(.byCharWrapping),

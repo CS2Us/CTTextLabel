@@ -381,10 +381,10 @@ public class CTTextLabel: UIView {
 								var y = -actualLinePosition[lineIndex].y + bounds.size.height - glyphPositions[glyphIndex].x - (ofs + w)
 								if case .verticalRotateAndMove(let xCenter, let yCenter) = mode {
 									if xCenter == true {
-										x += descent - 3
+										x += ofs
 									}
 									if yCenter == true {
-										y += descent
+										y += ofs
 									}
 								}
 								glyphPosition = CGPoint(x: x, y: y)
@@ -396,14 +396,15 @@ public class CTTextLabel: UIView {
 								var kern: CGFloat = 0
 								CFNumberGetValue(p_kern, .cgFloatType, &kern)
 								ctx.rotate(by: CGFloat(-90 * Double.pi / 180))
+								let ofs = (ascent - descent) * 0.5
 								var x = actualLinePosition[lineIndex].y - bounds.size.height + glyphPositions[glyphIndex].x + kern * 0.5
 								var y = actualLinePosition[lineIndex].x + verticalOffset + glyphPositions[glyphIndex].y - kern * 0.5
 								if case .horizontalButMove(let xCenter, let yCenter) = mode {
 									if xCenter == true {
-										y += descent - 1
+										y += ofs
 									}
 									if yCenter == true {
-										x += descent
+										x += ofs
 									}
 								}
 								glyphPosition = CGPoint(x: x, y: y)
