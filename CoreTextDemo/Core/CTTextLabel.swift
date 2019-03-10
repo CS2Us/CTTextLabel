@@ -74,7 +74,7 @@ private func AboutCTLine(_ ctline: CTLine, vertical: Bool, at position: CGPoint)
 	}
 	var bounds = CGRect.zero
 	if vertical {
-		bounds = CGRect(x: position.x - info.descent, y: position.y, width: info.ascent + info.descent, height: info.lineWidth)
+		bounds = CGRect(x: position.x /** - info.descent **/, y: position.y, width: info.ascent + info.descent, height: info.lineWidth)
 		bounds.origin.y += info.firstGlyphPos.x
 	} else {
 		bounds = CGRect(x: position.x, y: position.y - info.descent, width: info.lineWidth, height: info.ascent + info.descent)
@@ -116,6 +116,7 @@ private func AboutCTVerticalFormMoveXCenterCharacterSet() -> NSCharacterSet {
 	c_set.addCharacters(in: NSMakeRange(0xFF01, 1)) // ！
 	c_set.addCharacters(in: NSMakeRange(0xFF1A, 1)) // ：
 	c_set.addCharacters(in: NSMakeRange(0x2026, 1)) // …
+	c_set.addCharacters(in: NSMakeRange(0xFF1B, 1)) // ；
 	return c_set
 }
 
@@ -124,6 +125,7 @@ private func AboutCTVerticalFormMoveYCenterCharacterSet() -> NSCharacterSet {
 	c_set.addCharacters(in: NSMakeRange(0xFF0C, 1)) // ，
 	c_set.addCharacters(in: NSMakeRange(0x3001, 1)) // 、
 	c_set.addCharacters(in: NSMakeRange(0x3002, 1)) // 。
+
 	return c_set
 }
 
@@ -139,6 +141,7 @@ private func AboutCTVerticalFormRotateCharacterSet() -> NSCharacterSet {
 	c_set.addCharacters(in: NSMakeRange(0xFF1F, 1)) // ？
 	c_set.addCharacters(in: NSMakeRange(0xFF01, 1)) // ！
 	c_set.addCharacters(in: NSMakeRange(0xFF1A, 1)) // ：
+	c_set.addCharacters(in: NSMakeRange(0xFF1B, 1)) // ；
 	c_set.addCharacters(in: NSMakeRange(0xFF5C, 1)) // |
 	c_set.addCharacters(in: NSMakeRange(0xFE41, 1)) // ﹁
 	c_set.addCharacters(in: NSMakeRange(0xFE42, 1)) //  ﹂
@@ -320,6 +323,8 @@ public class CTTextLabel: UIView {
 		ctx.translateBy(x: point.x, y: point.y)
 		ctx.translateBy(x: 0, y: bounds.size.height)
 		ctx.scaleBy(x: 1, y: -1)
+//		ctx.setFillColor(UIColor.blue.cgColor)
+//		ctx.fill(rect)
 		
 		let verticalOffset = vertical ? bounds.size.width - rect.width : 0
 		let actualLineCount = numberOfLines > lineCount ? lineCount : numberOfLines
